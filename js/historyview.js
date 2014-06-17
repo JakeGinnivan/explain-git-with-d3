@@ -335,7 +335,8 @@ define(['d3'], function () {
 
             svgContainer = container.append('div')
                 .classed('svg-container', true)
-                .classed('remote-container', this.isRemote);
+                .classed('remote-container', this.isRemote)
+                .attr('style', 'width: ' + this.width + 'px');
 
             svg = svgContainer.append('svg:svg');
 
@@ -367,6 +368,14 @@ define(['d3'], function () {
             this.arrowBox = svg.append('svg:g').classed('pointers', true);
             this.commitBox = svg.append('svg:g').classed('commits', true);
             this.tagBox = svg.append('svg:g').classed('tags', true);
+            var config = this;
+            this.refreshSizeTimer = setInterval(function(){
+                var ele = document.getElementById(svg.node().id);
+                if (ele.getBBox().width > config.width)
+                    svg.attr('width', ele.getBBox().width);
+                else
+                    svg.attr('width', config.width);
+            }, 1000);
 
             this.renderCommits();
 
@@ -376,6 +385,7 @@ define(['d3'], function () {
         destroy: function () {
             this.svg.remove();
             this.svgContainer.remove();
+            clearInterval(this.refreshSizeTimer);
 
             for (var prop in this) {
                 if (this.hasOwnProperty(prop)) {
@@ -642,7 +652,9 @@ define(['d3'], function () {
                 .append('g')
                 .attr('class', function (d) {
                     var classes = 'branch-tag';
-                    if (d.name.indexOf('/') >= 0) {
+                    if (d.name.indexOf('[') === 0 && d.name.indexOf(']') === d.name.length - 1) {
+                        classes += ' git-tag';
+                    } else if (d.name.indexOf('/') >= 0) {
                         classes += ' remote-branch';
                     } else if (d.name.toUpperCase() === 'HEAD') {
                         classes += ' head-tag';
@@ -664,7 +676,11 @@ define(['d3'], function () {
                 });
 
             newTags.append('svg:text')
-                .text(function (d) { return d.name; })
+                .text(function (d) {
+                    if (d.name.indexOf('[') === 0 && d.name.indexOf(']') === d.name.length - 1)
+                        return d.name.substring(1, d.name.length - 1); 
+                    return d.name; 
+                })
                 .attr('y', function (d) {
                     return tagY(d, view) + 14;
                 })
@@ -786,6 +802,10 @@ define(['d3'], function () {
             this.getCommit('HEAD').tags.push(name);
             this.renderTags();
             return this;
+        },
+
+        tag: function (name) {
+            this.branch('[' + name + ']');
         },
 
         deleteBranch: function (name) {
