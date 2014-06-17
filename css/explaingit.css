@@ -46,6 +46,7 @@ span.cmd {
 
 .svg-container {
     display: inline-block;
+    overflow: auto;
     border: 1px dotted #AAA;
 }
 
@@ -178,6 +179,11 @@ g.branch-tag > rect {
 g.branch-tag.remote-branch > rect {
 	fill: #CCC;
 	stroke: #888;
+}
+
+g.branch-tag.git-tag > rect {
+	fill: #7FC9FF;
+	stroke: #0026FF;
 }
 
 g.branch-tag > text {
